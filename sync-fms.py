@@ -9,12 +9,12 @@ p_maruti = 0.60  # set probability >= 50%
 stop_event = threading.Event()   
 
 
-def generate_random_string(length=6):
+def generate_random_string():
     """Generate a random string of fixed length."""
     if random.random() < p_maruti:
         return WORD
     else:
-        return "".join(random.choices(string.ascii_letters + string.digits, k=length))
+        return "".join(random.choices(string.ascii_letters + string.digits, k=random.randint(5, 10)))
 
 
 def write_to_file(filename, interval):
@@ -77,8 +77,7 @@ def main():
     print("File monitoring system started. Press Ctrl+C to stop.")
 
     try:
-        while True:
-            time.sleep(1)
+        stop_event.wait()
 
     except KeyboardInterrupt:
         print("\nStopping file monitoring system...")
