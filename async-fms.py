@@ -8,11 +8,11 @@ import sys
 WORD = "MARUTI"
 p_maruti = 0.62  # probability for MARUTI
 
-def generate_random_string(length=6):
+def generate_random_string():
     """Generate a random string of fixed length or return WORD based on probability."""
     if random.random() < p_maruti:
         return WORD
-    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
+    return "".join(random.choices(string.ascii_letters + string.digits, k=random.randint(5, 10)))
 
 async def write_to_file(filename, interval):
     """Asynchronously write data to a file at regular intervals."""
@@ -21,7 +21,6 @@ async def write_to_file(filename, interval):
             random_str = generate_random_string()
             async with aiofiles.open(filename, 'a') as f:
                 await f.write(f"{random_str}\n")
-                await f.flush()
             # small console heartbeat so we know the writer is alive
             print(f"[{time.strftime('%H:%M:%S')}] wrote to {filename}: {random_str}")
             await asyncio.sleep(interval)
@@ -56,7 +55,6 @@ async def log_occurrence(log_file, interval=3):
             timestamp = time.strftime("%Y-%m-%d %H-%M-%S")
             async with aiofiles.open(log_file, 'a') as f:
                 await f.write(f"[{timestamp}] File1: {occ1}, File2: {occ2}\n")
-                await f.flush()
             print(f"[{time.strftime('%H:%M:%S')}] Logged counts -> File1: {occ1}, File2: {occ2}")
             await asyncio.sleep(interval)
     except asyncio.CancelledError:
@@ -67,8 +65,7 @@ async def main():
     file1, file2, console_file = 'file1.txt', 'file2.txt', 'counts.log'
 
     for fname in [file1, file2, console_file]:
-        async with aiofiles.open(fname, 'w') as f:
-            await f.write('')
+        open(fname, 'w').close()
 
     # create tasks
     tasks = [
@@ -80,8 +77,6 @@ async def main():
     try:
         await asyncio.gather(*tasks)
     except asyncio.CancelledError:
-        pass
-    finally:
         for t in tasks:
             if not t.done():
                 t.cancel()
@@ -90,12 +85,9 @@ async def main():
 
 if __name__ == '__main__':
     start = time.time()
+    print("File monitoring system started. Press Ctrl+C to stop.")
     try:
-        print("File monitoring system started. Press Ctrl+C to stop.")
         asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nStopping file monitoring system... (KeyboardInterrupt)")
-    finally:
-        print("\nStopping file monitoring system...")
+    finally: 
         end = time.time()
-        print(f"Total Time taken : {end - start:.2f} seconds")
+        print(f"\nShutdown complete. Time: {end - start:.2f}s")
